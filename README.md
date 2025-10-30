@@ -1,60 +1,62 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/CnWx6uam)
-# Faculty of Information and Communication Technology <br/> ITCS257 Frontend Application Development <br/> Advance TypeScript
+[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/IhfEcbIk)
+# Faculty of Information and Communication Technology <br/> ITCS257 Frontend Application Development <br/> Advanced React
+The financial management system comprises three components: invoice, quotation, and receipt. Previously, the invoice management subsystem was built using HTML, CSS, and TypeScript. In this lab, you will implement the quotation management system using React, Tailwind CSS, React Hooks, and shadcn/ui.
 
 ## Objectives
 
-The objective of this lab is to:
+After completing this lab, students will be able to:
 
-- Understand how to connect a frontend interface to backend APIs using TypeScript
-- Implement CRUD (Create, Read, Update, Delete) operations for an invoice management system
-- Practice working with HTTP requests in a TypeScript environment
-- Handle API responses and manage application state
-- Apply error handling techniques when working with external APIs
+- Implement a React application with multiple pages and components
+- Connect frontend components to APIs using React Hooks
+- Create custom hooks for specialized functionality
+- Utilize shadcn/ui and Tailwind CSS for responsive user interfaces
+- Implement form validation and data filtering features
 
 ## Exercise Tasks
-This exercise builds on the "Responsive Web Design and Mobile-first Approach" lab. You have already created the user interface for the invoice management system. In this lab, you will use TypeScript to connect the UI with APIs and deploy your previously created UIs to a web server (such as ExpressJS). You will also need to ensure all operations are user-friendly. 
 
-### Task 1: API Connection Setup
+Your task is to implement a simple Quotation Management System UI and connect it with APIs using React, Tailwind CSS, React Hooks, and shadcn/ui.
 
-- Create a TypeScript service/module for API communication
-- Implement configuration for API base URL and headers
-- Set up an authentication mechanism if required by the API
-- Create TypeScript type interfaces that match the API data structures
+### Requirements
 
-### Task 2: Read and Search Operations
+1. You need to implement the following functions:
+    1. Home Page
+    2. Login Page
+    3. Quotation Page: This page should include functions to create, list, and search for quotations. The search function must support filtering by company name, client email, and date range (start and end creation dates). The quotation creation form must be validated for all fields.
+    4. About Us Page: This page displays the system implementer's information in card format. The information must include first name, last name, email, and avatar.
+    5. Logout function: you need to ensure that all tokens are deleted.
+2. All functions must connect with the provided APIs.
+3. You must use React, Tailwind CSS, React Hooks, and shadcn/ui to implement your system.
+4. For React Hooks, you need to implement **at least three hooks** and **one custom hook**.
+5. The design of your system should closely match the provided UI.
 
-- Implement functionality to fetch all invoices from the API
-- Create a function to retrieve a single invoice by ID
-- Create a function to search for invoices regarding the criteria, including company name, client email, start issue date, and end issue date
-- Display the fetched data in your invoice interface
+### System UI
 
-### Task 3: Create Operations
+Home Page
 
-- Implement a form to create new invoices
-- Add form validation using TypeScript
-- Create a function to send new invoice data to the API
-- Handle the API response and update the UI accordingly
+![Home Page](expected_output/Home_Page.png)
 
-### Task 4: Error Handling
+Login Page
 
-- Implement error handling for all API requests
-- Display appropriate error messages to users
+![Login Page](expected_output/Login_Page.png)
+
+Quotation Page
+
+![Quotation Page](expected_output/Quotation_Page.png)
+
+Create a Quotation
+
+![Create a Quotation](expected_output/Create_Quotation_Page.png)
+
+### Demo Video
+
+The demo video also shows an invoice system. You may attempt to re-implement this system using React as an additional exercise, but this is optional and not required for completing the lab.
+
+https://github.com/user-attachments/assets/b20efdf6-86f3-40cb-bd9b-3b115925c6fc
+
 
 ## Extra Tasks
 
-### Task 1: Update Operations
-
-- Implement functionality to edit existing invoices
-- Create a form pre-populated with the invoice data
-- Send updated invoice data to the API
-- Refresh the displayed data after successful updates
-
-### Task 2: Delete Operations
-
-- Add functionality to delete invoices
-- Implement a confirmation dialog before deletion
-- Send delete requests to the API
-- Update the UI after successful deletion
+Challenge yourself by implementing additional features to update and delete quotations.
 
 ## Submission
 
@@ -64,7 +66,7 @@ This exercise builds on the "Responsive Web Design and Mobile-first Approach" la
 
 ## AI Usage Declaration and Reflection
 
-Students must add an AI Declaration and Reflection of Today's Learning to the top of their code file.
+Students must add an AI Declaration and a Reflection of Today's Learning to their MYREADME.md file.
 
 A reflection is not a summary of what you did or what the AI generated.
 Instead, it is a personal explanation of your learning process.
@@ -118,16 +120,3 @@ Reflection:
 */
 
 ```
-
-## Resources
-
-- **TypeScript HTTP Client Libraries:**
-    - Axios: https://axios-http.com/docs/intro - Popular promise-based HTTP client
-    - Fetch API: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API - Native browser API for making HTTP requests
-- **TypeScript Interface Documentation:**
-    - Official TypeScript Handbook: https://www.typescriptlang.org/docs/handbook/interfaces.html
-    - TypeScript Deep Dive: https://basarat.gitbook.io/typescript/type-system/interfaces
-- **Error Handling Best Practices:**
-    - TypeScript Error Handling: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-0.html#non-null-assertion-operator
-    - Error Handling in Async/Await: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
-    - Axios Error Handling: https://axios-http.com/docs/handling_errors
