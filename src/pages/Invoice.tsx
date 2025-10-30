@@ -158,7 +158,12 @@ export default function InvoicePage() {
         
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold text-ink">Invoices</h2>
-          <Button asChild className="bg-primary text-white hover:bg-secondary">
+          {/* FIX 1:
+            - Removed `bg-primary` and `text-white` from className.
+            - The component will now use the default 'primary' variant.
+            - Kept the custom `hover:bg-secondary`.
+          */}
+          <Button asChild className="hover:bg-secondary">
             <Link to="/create-invoice">+ Create Invoice</Link>
           </Button>
         </div>
@@ -220,7 +225,12 @@ export default function InvoicePage() {
                 className="mt-1"
               />
             </div>
-            <Button type="submit" className="bg-secondary text-white hover:bg-primary h-9">
+            {/* FIX 2:
+              - Added `variant="secondary"`.
+              - Removed `bg-secondary` and `text-white` from className.
+              - Kept the custom `hover:bg-primary` and `h-9`.
+            */}
+            <Button type="submit" variant="secondary" className="hover:bg-primary h-9">
               Search
             </Button>
           </form>

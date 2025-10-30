@@ -10,11 +10,11 @@ export default {
         sans: ['"Work Sans"', 'sans-serif'],
       },
       colors: {
-        primary: '#0a0b5b',
-        'primary-foreground': '#ffffff', // <-- ADD THIS (White Text)
+        primary: '#4b719b', // <-- UPDATED from '#0a0b5b' to this new color
+        'primary-foreground': '#ffffff', 
 
         secondary: '#3690ff',
-        'secondary-foreground': '#ffffff', // <-- ADD THIS (White Text)
+        'secondary-foreground': '#ffffff', 
 
         ink: '#111',
         muted: '#6b7280',

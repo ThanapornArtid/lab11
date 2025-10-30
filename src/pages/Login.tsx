@@ -118,9 +118,16 @@ export default function LoginPage() {
             </div>
 
             <div className="pt-5">
+              {/*
+                FIX 3:
+                - Added `variant="secondary"`.
+                - Removed `bg-secondary`, `hover:bg-primary`, and `text-white` from className.
+                - Kept `w-full` and added the custom `hover:bg-primary`
+              */}
               <Button
                 type="submit"
-                className="w-full bg-secondary hover:bg-primary text-white">
+                variant="secondary"
+                className="w-full hover:bg-primary">
                 Sign in
               </Button>
             </div>

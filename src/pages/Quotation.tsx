@@ -138,9 +138,15 @@ export default function QuotationPage() {
         {/* Title Bar - HERE IS THE "+ Create Quotation" BUTTON */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold text-ink">Quotations</h2>
+          {/*
+            FIX 1:
+            - Removed `bg-primary` and `text-white`.
+            - The default variant (primary) will be used automatically.
+            - Kept the custom `hover:bg-secondary`.
+          */}
           <Button 
             onClick={() => setShowCreateModal(true)} 
-            className="bg-primary text-white hover:bg-secondary"
+            className="hover:bg-secondary"
           >
             + Create Quotation
           </Button>
@@ -191,7 +197,13 @@ export default function QuotationPage() {
                 className="mt-1"
               />
             </div>
-            <Button type="submit" className="bg-secondary text-white hover:bg-primary h-9">
+            {/*
+              FIX 2:
+              - Added `variant="secondary"`.
+              - Removed `bg-secondary` and `text-white` from className.
+              - Kept the custom `hover:bg-primary`.
+            */}
+            <Button type="submit" variant="secondary" className="hover:bg-primary h-9">
               Search
             </Button>
             <Button type="button" variant="outline" onClick={handleReset} className="h-9">

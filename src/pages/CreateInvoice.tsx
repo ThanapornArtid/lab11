@@ -36,35 +36,44 @@ export default function CreateInvoicePage() {
     e.preventDefault();
     setLoading(true);
 
-    // Basic validation from your old project
     if (!formData.client_id || !formData.issue_date || !formData.due_date) {
       alert("Please fill out all required fields (*).");
       setLoading(false);
       return;
     }
 
-    // --- THIS IS THE UPDATED PART ---
-    // We keep amounts as strings to match the Invoice model
+    // --- THIS IS THE FIX ---
+    // Convert local datetime strings to full ISO 8601 format
     const invoiceData = {
       ...formData,
       client_id: parseInt(formData.client_id) || 0,
       created_by: parseInt(formData.created_by) || 0,
       
-      // Ensure amounts are strings, not numbers
+      // Convert dates to ISO strings (e.g., "2025-10-30T16:06:00.000Z")
+      issue_date: new Date(formData.issue_date).toISOString(),
+      due_date: new Date(formData.due_date).toISOString(),
+
+      // Ensure amounts are strings
       subtotal: formData.subtotal || "0",
       tax_amount: formData.tax_amount || "0",
       total_amount: formData.total_amount || "0",
-      amount_paid: "0", // Send as a string
+      amount_paid: "0",
     };
-    // --- END OF UPDATE ---
+    // --- END OF FIX ---
 
     try {
-      // The type error should now be gone
+      // The API should now accept the correctly formatted dates
       await api.post("/invoice", invoiceData as Partial<Invoice>); 
       alert('Invoice created successfully!');
       navigate('/invoice'); // Go back to the invoice list
     } catch (err: any) {
       console.error("Error creating invoice:", err);
+      
+      // Add more specific error logging
+      if (err.response) {
+        console.error("Server Response:", err.response.data);
+      }
+      
       alert(`Error creating invoice: ${err.message}`);
     } finally {
       setLoading(false);
@@ -132,11 +141,11 @@ export default function CreateInvoicePage() {
             <div className="space-y-4">
               <div>
                 <Label htmlFor="issue_date">Issue Date *</Label>
-                <Input id="issue_date" type="date" value={formData.issue_date} onChange={handleChange} required />
+                <Input id="issue_date" type="datetime-local" value={formData.issue_date} onChange={handleChange} required />
               </div>
               <div>
                 <Label htmlFor="due_date">Due Date *</Label>
-                <Input id="due_date" type="date" value={formData.due_date} onChange={handleChange} required />
+                <Input id="due_date" type="datetime-local" value={formData.due_date} onChange={handleChange} required />
               </div>
               <div>
                 <Label htmlFor="currency">Currency *</Label>
@@ -183,7 +192,7 @@ export default function CreateInvoicePage() {
             <Button type="button" variant="outline" asChild>
               <Link to="/invoice">Cancel</Link>
             </Button>
-            <Button type="submit" className="bg-secondary text-white hover:bg-primary" disabled={loading}>
+            <Button type="submit" variant="secondary" className="hover:bg-primary" disabled={loading}>
               {loading ? "Creating..." : "Create Invoice"}
             </Button>
           </div>
