@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
 import api from '../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Avatar, AvatarFallback } from '../components/ui/avatar' ;
+
+import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar' ;
 import bg2 from "@/assets/bg2.png";
 import { logout } from "@/services/logoutService"
+
+import myAvatar from "@/assets/my-avatar.png"; //
+
 interface User {
   firstname: string;
   lastname: string;
@@ -50,7 +54,7 @@ export default function AboutUsPage() {
             <a onClick={logout} className=" hover:font-bold cursor-pointer">Log out →</a>          
         </nav>
 
-        <div className="relative w-full h-60 opacity-90">
+        <div className="relative w-full h-60 opacity-90 ">
           <img
             src={bg2}
             alt="banner"
@@ -63,30 +67,35 @@ export default function AboutUsPage() {
       </header>
 
       {/* User Card Section */}
-      <main className="flex-grow flex justify-center items-center py-10">
-        <Card className="w-[350px] shadow-xl border rounded-2xl bg-white text-center">
-          <CardHeader>
-            <Avatar className="w-24 h-24 mx-auto mb-3 bg-[rgb(13,84,144)] text-white">
-              <AvatarFallback className="text-2xl font-bold">
+      <main className="flex-grow flex justify-center items-center py-10 ">
+        
+        <Card className="w-90 h-110 bg-white rounded-xl shadow-md p-6 text-center border-4 border-green-800">
+          
+          <CardHeader className="p-0">
+            <Avatar className="w-50 h-50 mx-auto mb-4 bg-primary text-white border-4 border-green-600">
+              
+
+              <AvatarImage src={myAvatar} alt="My Avatar" />
+              <AvatarFallback className="text-3xl font-bold">
                 {user.firstname?.charAt(0)}
                 {user.lastname?.charAt(0)}
               </AvatarFallback>
             </Avatar>
-            <CardTitle className="text-xl font-semibold text-[rgb(13,84,144)]">
+            
+            <CardTitle className="text-2xl font-bold text-gray-600">
               {user.firstname} {user.lastname}
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-gray-700 space-y-2">
-            <p>
-              <span className="font-semibold text-gray-800">Email:</span>{" "}
-              {user.email}
-            </p>
+          
+          <CardContent className="p-0 mt-1">
+            <p className="text-gray-500 mb-6">Email:  {user.email}</p>
           </CardContent>
+
         </Card>
       </main>
 
       {/* Footer */}
-      <footer className="mt-auto flex items-center justify-center text-sm bg-[rgb(13,84,144)] text-white w-full p-3">
+      <footer className="mt-auto flex items-center justify-center text-sm bg-ink text-white w-full p-3">
         <p>Use for Tailwind Demo © Faculty of ICT, Mahidol University</p>
       </footer>
     </div>

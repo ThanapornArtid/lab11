@@ -1,285 +1,258 @@
 import { useEffect, useState } from "react";
-import type { Quotation } from "@/models/models";
+import { Link, useNavigate } from "react-router-dom";
+import type { Quotation, Client } from "@/models/models";
 import api from "@/services/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { logout } from "@/services/logoutService";
 import bg2 from "@/assets/bg2.png";
-import { useNavigate } from "react-router-dom";
+import logo from "@/assets/logo.png";
 import CreateQuotation from "@/components/CreateQuotation";
-import { logout } from "@/services/logoutService"
+
+// --- Helper Functions ---
+
+const formatDate = (dateString?: string) => {
+  if (!dateString) return "-";
+  return new Date(dateString).toLocaleDateString("en-GB", {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+};
+
+const formatCurrency = (amountStr?: string, currency?: string) => {
+  const amount = parseFloat(amountStr || "0");
+  const symbol = currency === "THB" ? '฿' : '$'; // Default to $
+  return `${symbol}${amount.toLocaleString()}`;
+};
+
+// --- Component ---
+
+const initialFilters = {
+  company: "",
+  email: "",
+  startDate: "",
+  endDate: "",
+};
+
 export default function QuotationPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [quotations, setQuotations] = useState<Quotation[]>([]);
-  const [filtered, setFiltered] = useState<Quotation[]>([]);
-  const [filters, setFilters] = useState({
-    company: "",
-    email: "",
-    startDate: "",
-    endDate: "",
-  });
+  const [allQuotations, setAllQuotations] = useState<Quotation[]>([]);
+  const [filteredQuotations, setFilteredQuotations] = useState<Quotation[]>([]);
+  const [filters, setFilters] = useState(initialFilters);
   const navigate = useNavigate();
-  // const location = useLocation();
 
-  // Fetch quotations
+  // Fetch data on component mount
   const fetchQuotations = async () => {
     try {
-      // Fetch quotations + clients at the same time
       const [quotationRes, clientRes] = await Promise.all([
         api.get("/quotation"),
         api.get("/client"),
       ]);
 
-      const quotations = quotationRes.data;
-      const clients = clientRes.data;
+      const quotations: Quotation[] = quotationRes.data;
+      const clients: Client[] = clientRes.data;
+      const clientMap = new Map<number, Client>();
+      clients.forEach((c) => clientMap.set(c.client_id, c));
 
-      // Create a lookup map for quick access by client_id
-      const clientMap = new Map<number, any>();
-      clients.forEach((c: any) => clientMap.set(c.client_id, c));
-
-      // Merge client data into each quotation
-      const merged = quotations.map((q: any) => ({
+      const mergedQuotations = quotations.map((q) => ({
         ...q,
-        client: clientMap.get(q.client_id), // attach matching client object
+        client: clientMap.get(q.client_id),
       }));
 
-      console.log("Merged quotations:", merged); // 👈 for debugging
-
-      setQuotations(merged);
-      setFiltered(merged);
+      setAllQuotations(mergedQuotations);
+      setFilteredQuotations(mergedQuotations);
     } catch (err) {
       console.error("Failed to fetch quotations or clients:", err);
     }
   };
-  const refreshQuotations = () => fetchQuotations();
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short", // gives Jan, Feb, Mar...
-      day: "numeric",
-    });
-  };
+  
   useEffect(() => {
     fetchQuotations();
   }, []);
 
+  const refreshQuotations = () => {
+    fetchQuotations(); // Simple refetch
+  };
+
   const handleSearch = (e: React.FormEvent) => {
-  e.preventDefault();
-  const { company, email, startDate, endDate } = filters;
-  
-  // Navigate is often done after filtering, but kept here as per your original code.
-  // navigate("/quotation/search"); 
+    e.preventDefault();
+    let quotations = [...allQuotations];
 
-  const result = quotations.filter((q) => {
-    const companyName = q.client?.company_name || "";
-    const clientEmail = q.client?.email || "";
-    const issueDate = q.created_at ? new Date(q.created_at) : null;
-    const validUntilDate = q.valid_until ? new Date(q.valid_until) : null;
+    // Filter by text fields
+    quotations = quotations.filter((q) => {
+      const client = q.client;
+      const matchCompany = !filters.company || client?.company_name.toLowerCase().includes(filters.company.toLowerCase());
+      const matchEmail = !filters.email || client?.email.toLowerCase().includes(filters.email.toLowerCase());
+      return matchCompany && matchEmail;
+    });
 
-    const matchCompany =
-      !company || companyName.toLowerCase().includes(company.toLowerCase());
-    const matchEmail =
-      !email || clientEmail.toLowerCase().includes(email.toLowerCase());
-    
-    // --- START Old Logic Implementation ---
-    const matchStart = 
-      !startDate || (issueDate && issueDate >= new Date(startDate));
-
-    let matchEnd = true;
-    let matchValidUntil = true;
-    if (endDate) {
-      const adjustedEndDate = new Date(endDate);
-      adjustedEndDate.setDate(adjustedEndDate.getDate() + 1);
-
-      // 1. Check Issue Date against End Date
-      if (issueDate) {
-          matchEnd = issueDate < adjustedEndDate;
-      } else {
-          matchEnd = false; 
-      }
-      
-      // 2. NEW: Check Valid Until Date against End Date
-      if (validUntilDate) {
-          matchValidUntil = validUntilDate < adjustedEndDate;
-      }
-      // If validUntilDate is null, it typically passes, or you can set it to false
-      // for strict filtering. Assuming it should only be filtered if it exists.
+    // Filter by date
+    if (filters.startDate) {
+      const startDate = new Date(filters.startDate);
+      quotations = quotations.filter(q => new Date(q.created_at!) >= startDate);
     }
+    if (filters.endDate) {
+      const endDate = new Date(filters.endDate);
+      endDate.setDate(endDate.getDate() + 1); // Make it inclusive
+      quotations = quotations.filter(q => new Date(q.created_at!) < endDate);
+    }
+    
+    setFilteredQuotations(quotations);
+  };
 
-    // Now, return true only if ALL date conditions are met
-    return matchCompany && matchEmail && matchStart && matchEnd && matchValidUntil;
-  });
-
-  // If you only want to filter, remove the navigate call above and keep this:
-  navigate("/quotation"); // or keep it on the current page
-
-  setFiltered(result);
-};
-
+  const handleReset = () => {
+    setFilters(initialFilters);
+    setFilteredQuotations(allQuotations);
+  };
 
   return (
-    <div>
-      {/* Header */}
+    <div className="min-h-screen bg-gray-100 flex flex-col">
+      {/* 1. Header & Banner */}
       <header>
-        <nav className="flex items-center justify-between p-4 text-xs font-bold">
+        <nav className="flex items-center justify-between p-4 text-xs font-bold bg-white shadow-sm">
           <div>
-            <a href="/">Home</a>
+            <Link to="/">
+              <img src={logo} alt="logo" className="w-12" />
+            </Link>
           </div>
           <div className="space-x-6">
-            <a href="/invoice">Invoice</a>
-            <a href="/quotation">Quotation</a>
-            <a href="/aboutus">About Us</a>
+            <Link to="/invoice">Invoice</Link>
+            <Link to="/quotation" className="font-bold text-primary">Quotation</Link>
+            <Link to="/aboutus">About Us</Link>
           </div>
-        <a onClick={logout} className=" hover:font-bold cursor-pointer">Log out →</a>        
+          <a onClick={logout} className=" hover:font-bold cursor-pointer">Log out →</a>
         </nav>
 
         <div className="relative w-full h-60 opacity-90">
-          <img
-            src={bg2}
-            alt="banner"
-            className="absolute inset-0 w-full h-full object-cover brightness-50"
-          />
+          <img src={bg2} alt="banner" className="absolute inset-0 w-full h-full object-cover brightness-50" />
           <h1 className="absolute inset-0 flex items-center justify-center text-white text-3xl font-bold">
             Quotation Management System
           </h1>
         </div>
       </header>
 
-      {/* Search Form */}
-
-      <div className="mt-10 mx-5 shadow p-5 rounded-xl ">
-        <form
-          onSubmit={handleSearch}
-          className="flex flex-wrap items-center gap-3 text-sm"
-        >
-          <label>Search:</label>
-
-          <Input
-            type="text"
-            placeholder="Company Name"
-            value={filters.company}
-            onChange={(e) =>
-              setFilters({ ...filters, company: e.target.value })
-            }
-            className="w-40"
-          />
-
-          <Input
-            type="email"
-            placeholder="Client Email"
-            value={filters.email}
-            onChange={(e) =>
-              setFilters({ ...filters, email: e.target.value })
-            }
-            className="w-44"
-          />
-
-          <label>Start Date:</label>
-          <Input
-            type="date"
-            value={filters.startDate}
-            onChange={(e) =>
-              setFilters({ ...filters, startDate: e.target.value })
-            }
-            className="w-36"
-          />
-
-          <label>End Date:</label>
-          <Input
-            type="date"
-            value={filters.endDate}
-            onChange={(e) =>
-              setFilters({ ...filters, endDate: e.target.value })
-            }
-            className="w-36"
-          />
-
-          <Button
-            type="submit"
-            className="bg-[rgb(13,84,144)] text-white hover:bg-[rgb(10,70,120)]"
-          >
-            Search
-          </Button>
-          <Button
-            type="button"
-            onClick={() => {
-              // Reset filters to empty
-              setFilters({ company: "", email: "", startDate: "", endDate: "" });
-              // Restore full list
-              setFiltered(quotations);
-              // Navigate back to main quotation page
-              navigate("/quotation");
-            }}
-            className="bg-gray-300 text-black hover:bg-gray-400"
-          >
-            Reset
-          </Button>
-
-        </form>
-      </div>
-      {/* Table */}
-      <div className=" rounded-xl shadow-xl p-6 mx-8 mt-3">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-xl font-bold">Quotations</h2>
-            <p className="text-sm text-gray-600">
-              A list of all quotations in your account.
-            </p>
-          </div>
-          <Button
-            onClick={() => setShowCreateModal(true)}
-            className="text-white px-3 py-1 bg-[rgb(13,84,144)] rounded-md"
+      {/* 2. Main Content Area */}
+      <main className="flex-grow p-6">
+        
+        {/* Title Bar - HERE IS THE "+ Create Quotation" BUTTON */}
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold text-ink">Quotations</h2>
+          <Button 
+            onClick={() => setShowCreateModal(true)} 
+            className="bg-primary text-white hover:bg-secondary"
           >
             + Create Quotation
           </Button>
-
-          <CreateQuotation
-            open={showCreateModal}
-            onClose={() => setShowCreateModal(false)}
-            onCreated={refreshQuotations}
-          />
-
         </div>
 
-        <table className="w-full mt-5 border-collapse border-gray-200 text-sm">
-          <thead className="bg-gray-100 ">
-            <tr>
-              <th className="p-2 text-left">Quotation#</th>
-              <th className="p-2 text-left">Create Date</th>
-              <th className="p-2 text-left">Valid Until</th>
-              <th className="p-2 text-left">Company</th>
-              <th className="p-2 text-left">Staff</th>
-              <th className="p-2 text-left ">Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="text-center py-5 text-gray-500 italic">
-                  No quotations found.
-                </td>
-              </tr>
-            ) : (
-              filtered.map((q) => (
-                <tr key={q.quotation_id} className="hover:bg-gray-50 border-b border-gray-200 ">
-                  <td className=" p-3 text-left ">{q.quotation_number}</td>
-                  <td className=" p-3 text-left">{formatDate(q.created_at)}</td>
-                  <td className=" p-3 text-left">{formatDate(q.valid_until)}</td>
-                  <td className=" p-3 text-left">{q.client?.company_name || "-"}</td>
-                  <td className=" p-3 text-left">{q.client?.contact_person || "-"}</td>
-                  <td className=" p-3 text-left">
-                    {q.currency} {q.total_amount}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+        {/* Search Form - HERE ARE THE "Search" AND "Reset" BUTTONS */}
+        <div className="p-4 bg-white rounded-lg shadow-sm">
+          <form onSubmit={handleSearch} className="flex flex-wrap gap-4 items-end">
+            <div className="flex-1 min-w-[150px]">
+              <label htmlFor="search-company-name" className="block text-xs font-medium text-muted">Company Name</label>
+              <Input
+                id="search-company-name"
+                type="text"
+                placeholder="Company Name"
+                value={filters.company}
+                onChange={(e) => setFilters({ ...filters, company: e.target.value })}
+                className="mt-1"
+              />
+            </div>
+            <div className="flex-1 min-w-[150px]">
+              <label htmlFor="search-client-email" className="block text-xs font-medium text-muted">Client Email</label>
+              <Input
+                id="search-client-email"
+                type="email"
+                placeholder="Client Email"
+                value={filters.email}
+                onChange={(e) => setFilters({ ...filters, email: e.target.value })}
+                className="mt-1"
+              />
+            </div>
+            <div className="flex-1 min-w-[120px]">
+              <label htmlFor="start-date" className="block text-xs font-medium text-muted">From:</label>
+              <Input
+                id="start-date"
+                type="date"
+                value={filters.startDate}
+                onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
+                className="mt-1"
+              />
+            </div>
+            <div className="flex-1 min-w-[120px]">
+              <label htmlFor="end-date" className="block text-xs font-medium text-muted">To:</label>
+              <Input
+                id="end-date"
+                type="date"
+                value={filters.endDate}
+                onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
+                className="mt-1"
+              />
+            </div>
+            <Button type="submit" className="bg-secondary text-white hover:bg-primary h-9">
+              Search
+            </Button>
+            <Button type="button" variant="outline" onClick={handleReset} className="h-9">
+              Reset
+            </Button>
+          </form>
+        </div>
 
-      {/* Footer */}
-      <footer className="mt-32 flex items-center justify-center text-sm bg-[rgb(13,84,144)] text-white w-full p-3">
+        {/* 3. Quotation List (Table) */}
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden mt-6">
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted uppercase">Quotation#</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted uppercase">Created Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted uppercase">Valid Until</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted uppercase">Company</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted uppercase">Staff</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted uppercase">Amount</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredQuotations.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="text-center py-10 text-muted">
+                      No quotations found.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredQuotations.map((q) => (
+                    <tr key={q.quotation_id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-ink">{q.quotation_number}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted">{formatDate(q.created_at)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted">{formatDate(q.valid_until)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-ink">{q.client?.company_name || "Unknown"}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted">{q.client?.contact_person || "-"}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-ink">
+                        {formatCurrency(q.total_amount, q.currency)}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+
+      {/* 4. Modal (hidden by default) */}
+      <CreateQuotation
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCreated={() => {
+          setShowCreateModal(false); // Close modal
+          refreshQuotations();       // Refetch data
+        }}
+      />
+
+      {/* 5. Footer */}
+      <footer className="mt-auto flex items-center justify-center text-sm bg-ink text-white w-full p-3 mt-10">
         <p>Use for Tailwind Demo © Faculty of ICT, Mahidol University</p>
       </footer>
     </div>

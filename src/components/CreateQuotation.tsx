@@ -131,7 +131,7 @@ export default function CreateQuotation({ open, onClose, onCreated }: Props) {
           <div>
             <Label>Quotation Number</Label>
             <Input
-              placeholder="Q-2025-001"
+              placeholder="INV-Q-2025-002"
               value={quotationNumber}
               onChange={(e) => setQuotationNumber(e.target.value)}
               required
@@ -142,7 +142,7 @@ export default function CreateQuotation({ open, onClose, onCreated }: Props) {
             <Label>Client Company</Label>
             <Input
               list="client-list"
-              placeholder="Enter company name"
+              placeholder="บางระจัน สู้ไม่ถอย จำกัด"
               value={company}
               onChange={(e) => setCompany(e.target.value)}
               required

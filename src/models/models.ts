@@ -13,6 +13,7 @@ export interface Invoice {
   currency?: string;
   notes?: string;
   created_by: number;
+  client?: Client; // <-- Add this line
 }
 
 export interface Client {
@@ -21,7 +22,6 @@ export interface Client {
     address: string;
     email: string;
     contact_person?: string;
-
 }
 
 export interface Quotation {

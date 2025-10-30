@@ -37,7 +37,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <footer className="flex items-center justify-center text-sm bg-[rgb(13,84,144)] text-white w-full p-3">
+      <footer className="flex items-center justify-center text-sm bg-ink text-white w-full p-3">
         <p>Use for Tailwind Demo &copy; Faculty of ICT, Mahidol University</p>
       </footer>
     </div>
